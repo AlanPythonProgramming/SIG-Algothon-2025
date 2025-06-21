@@ -161,66 +161,66 @@ currentPos = np.zeros(nInst)
 
 #     return pos
 
-# def getMyPosition(prcSoFar):
-#     returns = np.log(prcSoFar[:, 1:] / prcSoFar[:, :-1])
-#     mean_returns = np.mean(returns, axis=1)
-#     k = 5
-#     top_k = np.argsort(mean_returns)[-k:]
-#     bottom_k = np.argsort(mean_returns)[:k]
-#     pos = np.zeros(nInst, dtype=int)
-#     for i in top_k:
-#         pos[i] = -10000 // prcSoFar[i, -1]
-#     for i in bottom_k:
-#         pos[i] = 10000 // prcSoFar[i, -1]
-#     return pos
-
-import numpy as np
-
-nInst = 50
-dollar_limit = 10000
-confidence_z = 2.0  # Threshold for "super confident" signal
-
-def kalman_filter(prices, Q=0.0001, R=0.01):
-    """Simple 1D Kalman filter for price series."""
-    n = len(prices)
-    xhat = np.zeros(n)
-    P = np.zeros(n)
-    xhat[0] = prices[0]
-    P[0] = 1.0
-    for t in range(1, n):
-        # Prediction
-        xhatminus = xhat[t-1]
-        Pminus = P[t-1] + Q
-        # Update
-        K = Pminus / (Pminus + R)
-        xhat[t] = xhatminus + K * (prices[t] - xhatminus)
-        P[t] = (1 - K) * Pminus
-    return xhat
-
 def getMyPosition(prcSoFar):
-    n, t = prcSoFar.shape
-    pos = np.zeros(n, dtype=int)
-    lookback = 50  # Use last 50 days for confidence estimation
-
-    for i in range(n):
-        prices = prcSoFar[i]
-        if len(prices) < lookback + 2:
-            continue
-        # Run Kalman filter on this instrument
-        kf_est = kalman_filter(prices)
-        # Calculate residuals (prediction errors)
-        residuals = prices[-lookback:] - kf_est[-lookback:]
-        mean_resid = np.mean(residuals)
-        std_resid = np.std(residuals) + 1e-8
-        zscore = (residuals[-1] - mean_resid) / std_resid
-
-        # Trading logic: act only if "super confident"
-        if zscore > confidence_z:
-            # Price much higher than trend: short
-            pos[i] = -dollar_limit // prices[-1]
-        elif zscore < -confidence_z:
-            # Price much lower than trend: long
-            pos[i] = dollar_limit // prices[-1]
-        else:
-            pos[i] = 0
+    returns = np.log(prcSoFar[:, 1:] / prcSoFar[:, :-1])
+    mean_returns = np.mean(returns, axis=1)
+    k = 5
+    top_k = np.argsort(mean_returns)[-k:]
+    bottom_k = np.argsort(mean_returns)[:k]
+    pos = np.zeros(nInst, dtype=int)
+    for i in top_k:
+        pos[i] = -10000 // prcSoFar[i, -1]
+    for i in bottom_k:
+        pos[i] = 10000 // prcSoFar[i, -1]
     return pos
+
+# import numpy as np
+
+# nInst = 50
+# dollar_limit = 10000
+# confidence_z = 2.0  # Threshold for "super confident" signal
+
+# def kalman_filter(prices, Q=0.0001, R=0.01):
+#     """Simple 1D Kalman filter for price series."""
+#     n = len(prices)
+#     xhat = np.zeros(n)
+#     P = np.zeros(n)
+#     xhat[0] = prices[0]
+#     P[0] = 1.0
+#     for t in range(1, n):
+#         # Prediction
+#         xhatminus = xhat[t-1]
+#         Pminus = P[t-1] + Q
+#         # Update
+#         K = Pminus / (Pminus + R)
+#         xhat[t] = xhatminus + K * (prices[t] - xhatminus)
+#         P[t] = (1 - K) * Pminus
+#     return xhat
+
+# def getMyPosition(prcSoFar):
+#     n, t = prcSoFar.shape
+#     pos = np.zeros(n, dtype=int)
+#     lookback = 50  # Use last 50 days for confidence estimation
+
+#     for i in range(n):
+#         prices = prcSoFar[i]
+#         if len(prices) < lookback + 2:
+#             continue
+#         # Run Kalman filter on this instrument
+#         kf_est = kalman_filter(prices)
+#         # Calculate residuals (prediction errors)
+#         residuals = prices[-lookback:] - kf_est[-lookback:]
+#         mean_resid = np.mean(residuals)
+#         std_resid = np.std(residuals) + 1e-8
+#         zscore = (residuals[-1] - mean_resid) / std_resid
+
+#         # Trading logic: act only if "super confident"
+#         if zscore > confidence_z:
+#             # Price much higher than trend: short
+#             pos[i] = -dollar_limit // prices[-1]
+#         elif zscore < -confidence_z:
+#             # Price much lower than trend: long
+#             pos[i] = dollar_limit // prices[-1]
+#         else:
+#             pos[i] = 0
+#     return pos
