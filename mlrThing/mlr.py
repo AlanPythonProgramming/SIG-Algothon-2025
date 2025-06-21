@@ -4,9 +4,10 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
+import json
 
 # 1. Load data
-df = pd.read_csv("prices.txt", delim_whitespace=True, header=None)
+df = pd.read_csv("../prices.txt", delim_whitespace=True, header=None)
 returns = df.pct_change().dropna()
 
 results = []
