@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 from main import getMyPosition as getPosition
+from matplotlib import pyplot as plt
 
 nInst = 0
 nt = 0
@@ -60,11 +61,11 @@ def calcPL(prcHist, numTestDays):
     annSharpe = 0.0
     if (plstd > 0):
         annSharpe = np.sqrt(249) * plmu / plstd
-    return (plmu, ret, plstd, annSharpe, totDVolume)
+    return (plmu, ret, plstd, annSharpe, totDVolume, pll)
 
 
 
-(meanpl, ret, plstd, sharpe, dvol) = calcPL(prcAll,250)
+(meanpl, ret, plstd, sharpe, dvol, pll) = calcPL(prcAll,50)
 score = meanpl - 0.1*plstd
 print ("=====")
 print ("mean(PL): %.1lf" % meanpl)
@@ -73,3 +74,5 @@ print ("StdDev(PL): %.2lf" % plstd)
 print ("annSharpe(PL): %.2lf " % sharpe)
 print ("totDvolume: %.0lf " % dvol)
 print ("Score: %.2lf" % score)
+plt.plot(np.cumsum(pll), label='Cumulative P&L')
+plt.show()
