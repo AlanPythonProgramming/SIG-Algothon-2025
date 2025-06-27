@@ -5,12 +5,19 @@ import pandas as pd
 from main import getMyPosition as getPosition
 from matplotlib import pyplot as plt
 
+ALL_ASSETS = True
+
+if ALL_ASSETS == True:
+    assets = [x for x in range(len(50))]
+else:
+    assets = [2,20,30]
+
 nInst = 0
 nt = 0
 commRate = 0.0005
 dlrPosLimit = 10000
-assets = [2,20,30]
-value_array = [0 for x in range(50)]
+
+value_array = [0 for x in range(len(assets))]
 
 def loadPrices(fn):
     global nt, nInst
@@ -24,10 +31,10 @@ print ("Loaded %d instruments for %d days" % (nInst, nt))
 
 def calcPL(prcHist, numTestDays): 
     cash = 0
-    cash_array = [0 for x in range(50)]
-    value_array = [0 for x in range(50)]
+    cash_array = [0 for x in range(len(assets))]
+    value_array = [0 for x in range(len(assets))]
     volume_array = []
-    curPos = np.zeros(nInst)
+    curPos = [0 for x in range(len(assets))]
     totDVolume = 0
     totDVolumeSignal = 0
     totDVolumeRandom = 0
@@ -38,10 +45,10 @@ def calcPL(prcHist, numTestDays):
     startDay = nt + 1 - numTestDays
     for t in range(startDay, nt+1):
         prcHistSoFar = prcHist[:,:t]
-        curPrices = prcHistSoFar[:,-1]
+        curPrices = prcHistSoFar[assets,-1]
         if (t < nt):
             # Trading, do not do it on the very last day of the test
-            newPosOrig = getPosition(prcHistSoFar)
+            newPosOrig = getPosition(prcHistSoFar)[assets]
             posLimits = np.array([int(x) for x in dlrPosLimit / curPrices])
             newPos = np.clip(newPosOrig, -posLimits, posLimits)
             deltaPos = newPos - curPos
@@ -87,6 +94,22 @@ def calcPL(prcHist, numTestDays):
     return (plmu, ret, plstd, annSharpe, totDVolume, pll, pll_array, volume_array)
 
 (meanpl, ret, plstd, sharpe, dvol, pll, pll_array, volume_array) = calcPL(prcAll,300)
+
+
+# Calculate and sort assets by profit
+profits = pll_array.sum(axis=0)
+sortedProfits = profits.sort_values(ascending=False)
+sortedProfitsIndex = sortedProfits.index
+
+# Calculate returns for each asset
+volumes = np.sum(volume_array,axis = 0)
+returns = profits / volumes
+
+for i in range(len(assets)):
+    print('Asset',assets[sortedProfitsIndex[i]],": $",
+          round(profits[sortedProfitsIndex[i]],2),":",
+          round(100*returns[sortedProfitsIndex[i]],3),"%")
+
 score = meanpl - 0.1*plstd
 print ("=====")
 print ("mean(PL): %.1lf" % meanpl)
@@ -97,31 +120,12 @@ print ("totDvolume: %.0lf " % dvol)
 print ("Score: %.2lf" % score)
 
 
-# Calculate and sort assets by profit
-profits = np.sum(pll_array,axis = 0)
-sortedProfitIndex = np.argsort(-profits)
-
-# Calculate returns for each asset
-volumes = np.sum(volume_array,axis = 0)
-returns = profits / volumes
-
-for i in range(50):
-    print('Asset',sortedProfitIndex[i],": $",
-          round(profits[sortedProfitIndex[i]],2),":",
-          round(100*returns[sortedProfitIndex[i]],3),"%")
-
-
-
-
 plt.plot(np.cumsum(pll), label='Cumulative P&L')
 plt.title("Total Portfolio P&L")
 plt.show()
 
-# Filter for just the assets in focus
-pll_array = pll_array[assets]
-
 plt.plot(np.cumsum(pll_array,axis=0))
-plt.legend(pll_array)
+plt.legend(assets)
 plt.title("Select Assets P&L")
 plt.show()
 
