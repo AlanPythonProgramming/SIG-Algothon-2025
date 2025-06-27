@@ -5,12 +5,12 @@ import pandas as pd
 from main import getMyPosition as getPosition
 from matplotlib import pyplot as plt
 
-ALL_ASSETS = True
+ALL_ASSETS = False
 
 if ALL_ASSETS == True:
-    assets = [x for x in range(len(50))]
+    assets = [x for x in range(50)]
 else:
-    assets = [2,20,30]
+    assets = [1,5,6,7,8]
 
 nInst = 0
 nt = 0
@@ -119,7 +119,6 @@ print ("annSharpe(PL): %.2lf " % sharpe)
 print ("totDvolume: %.0lf " % dvol)
 print ("Score: %.2lf" % score)
 
-
 plt.plot(np.cumsum(pll), label='Cumulative P&L')
 plt.title("Total Portfolio P&L")
 plt.show()
@@ -127,8 +126,4 @@ plt.show()
 plt.plot(np.cumsum(pll_array,axis=0))
 plt.legend(assets)
 plt.title("Select Assets P&L")
-plt.show()
-
-plt.plot(np.cumsum(np.sum(pll_array,axis=1),axis=0))
-plt.title("Select Assets Portfolio P&L")
 plt.show()
