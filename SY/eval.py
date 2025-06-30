@@ -10,14 +10,14 @@ ALL_ASSETS = False
 if ALL_ASSETS == True:
     assets = [x for x in range(50)]
 else:
-    assets = [1,5,6,7,8]
+    assets = [1,5,7,8,21,32]
 
 nInst = 0
 nt = 0
 commRate = 0.0005
 dlrPosLimit = 10000
 
-value_array = [0 for x in range(len(assets))]
+value_array = [0 for x in range(50)]
 
 def loadPrices(fn):
     global nt, nInst
@@ -31,10 +31,10 @@ print ("Loaded %d instruments for %d days" % (nInst, nt))
 
 def calcPL(prcHist, numTestDays): 
     cash = 0
-    cash_array = [0 for x in range(len(assets))]
-    value_array = [0 for x in range(len(assets))]
+    cash_array = [0 for x in range(50)]
+    value_array = [0 for x in range(50)]
     volume_array = []
-    curPos = [0 for x in range(len(assets))]
+    curPos = [0 for x in range(50)]
     totDVolume = 0
     totDVolumeSignal = 0
     totDVolumeRandom = 0
@@ -45,10 +45,11 @@ def calcPL(prcHist, numTestDays):
     startDay = nt + 1 - numTestDays
     for t in range(startDay, nt+1):
         prcHistSoFar = prcHist[:,:t]
-        curPrices = prcHistSoFar[assets,-1]
+        curPrices = prcHistSoFar[:,-1]
         if (t < nt):
             # Trading, do not do it on the very last day of the test
-            newPosOrig = getPosition(prcHistSoFar)[assets]
+            newPosOrig = np.array([0 for x in range(50)])
+            newPosOrig[assets] = getPosition(prcHistSoFar)[assets]
             posLimits = np.array([int(x) for x in dlrPosLimit / curPrices])
             newPos = np.clip(newPosOrig, -posLimits, posLimits)
             deltaPos = newPos - curPos
@@ -85,8 +86,8 @@ def calcPL(prcHist, numTestDays):
             volume_array.append(dvolumes)
 
     pll = np.array(todayPLL)
-    pll_array = pd.DataFrame(todayPLL_array)
-    volume_array = pd.DataFrame(volume_array)
+    pll_array = pd.DataFrame(todayPLL_array)[assets]
+    volume_array = pd.DataFrame(volume_array)[assets]
     (plmu,plstd) = (np.mean(pll), np.std(pll))
     annSharpe = 0.0
     if (plstd > 0):
@@ -105,8 +106,12 @@ sortedProfitsIndex = sortedProfits.index
 volumes = np.sum(volume_array,axis = 0)
 returns = profits / volumes
 
+print(sortedProfits)
+print(sortedProfitsIndex)
+
 for i in range(len(assets)):
-    print('Asset',assets[sortedProfitsIndex[i]],": $",
+    
+    print('Asset',sortedProfitsIndex[i],": $",
           round(profits[sortedProfitsIndex[i]],2),":",
           round(100*returns[sortedProfitsIndex[i]],3),"%")
 
