@@ -10,7 +10,7 @@ ALL_ASSETS = False
 if ALL_ASSETS == True:
     assets = [x for x in range(50)]
 else:
-    assets = [1,5,7,8,21,32]
+    assets = [41,32,29,21,6,17,16]
 
 nInst = 0
 nt = 0
@@ -94,7 +94,7 @@ def calcPL(prcHist, numTestDays):
         annSharpe = np.sqrt(249) * plmu / plstd
     return (plmu, ret, plstd, annSharpe, totDVolume, pll, pll_array, volume_array)
 
-(meanpl, ret, plstd, sharpe, dvol, pll, pll_array, volume_array) = calcPL(prcAll,300)
+(meanpl, ret, plstd, sharpe, dvol, pll, pll_array, volume_array) = calcPL(prcAll,250)
 
 
 # Calculate and sort assets by profit
